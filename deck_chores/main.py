@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta
 import logging
 import sys
+import re
 from signal import signal, SIGINT, SIGTERM, SIGUSR1
 
 from apscheduler.schedulers import SchedulerNotRunningError
@@ -62,6 +63,14 @@ signal(SIGUSR1, sigusr1_handler)
 
 def process_started_container_labels(container_id: str, paused: bool = False) -> None:
     service_id, flags, definitions = parse.labels(container_id)
+
+    container = cfg.client.containers.get(container_id)
+    container_name = container.name
+    regex = r".*\.1\..*"
+    match = re.match(regex, container_name)
+    if match is None:
+        log.info('Scaled service detected, do only add cron for first one.')
+        return
 
     if not definitions:
         return
