@@ -1,6 +1,6 @@
 FROM python:alpine3.8
 
-MAINTAINER Frank Sachsenheim <funkyfuture@riseup.net>
+MAINTAINER Gerald Aistleitner <g.aistleitner@siwa.at>
 
 ARG VERSION
 ARG SOURCE_COMMIT
