@@ -93,10 +93,14 @@ def inspect_running_containers() -> datetime:
 
     for container in containers:
         data = cfg.client.api.inspect_container(container.id)
+        try:
+            container_start_time = datetime.fromisoformat(data['State']['StartedAt'][:26]),  # type: ignore
+        except ValueError:
+            container_start_time = datetime.utcnow()
         last_event_time = max(
             last_event_time,
             # not sure why mypy doesn't know about this method:
-            datetime.fromisoformat(data['State']['StartedAt'][:26]),  # type: ignore
+            container_start_time
         )
         process_started_container_labels(
             container.id, paused=container.status == 'paused'
