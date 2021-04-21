@@ -87,23 +87,21 @@ def process_started_container_labels(container_id: str, paused: bool = False) ->
 
 
 def inspect_running_containers() -> datetime:
-    log.info('Inspecting running containers.')
+    log.info("Inspecting running containers.")
     last_event_time = datetime.utcnow()
     containers = cfg.client.containers.list(ignore_removed=True, sparse=True)
 
     for container in containers:
-        data = cfg.client.api.inspect_container(container.id)
-        try:
-            container_start_time = datetime.fromisoformat(data['State']['StartedAt'][:26]),  # type: ignore
-        except ValueError:
-            container_start_time = datetime.utcnow()
+        container_id = container.id
+        started_at = cfg.client.api.inspect_container(container_id)['State'][
+            'StartedAt'
+        ]
         last_event_time = max(
             last_event_time,
-            # not sure why mypy doesn't know about this method:
-            container_start_time
+            datetime.fromisoformat(started_at[: 23 if len(started_at) < 26 else 26]),
         )
         process_started_container_labels(
-            container.id, paused=container.status == 'paused'
+            container_id, paused=container.status == 'paused'
         )
 
     log.debug('Finished inspection of running containers.')
